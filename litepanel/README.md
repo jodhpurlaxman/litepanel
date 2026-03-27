@@ -7,7 +7,7 @@ A lightweight, security-focused web hosting control panel built with Django. Ins
 ## Quick Install
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/jodhpurlaxman/litepanel/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/jodhpurlaxman/litepanel/refs/heads/main/litepanel/install.sh)
 ```
 
 Or clone and run manually:
