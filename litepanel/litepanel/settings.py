@@ -28,7 +28,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 FERNET_KEY = os.environ['FERNET_KEY']
 
 DEBUG = False
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['*']
 
 # ---------------------------------------------------------------------------
 # Application definition
