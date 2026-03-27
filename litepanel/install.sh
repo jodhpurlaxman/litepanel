@@ -177,6 +177,11 @@ success "Directories created"
 # ── Step 5: Clone repository ──────────────────────────────────────────────────
 info "Step 5/9 — Cloning LitePanel from ${REPO_URL}..."
 
+if [[ -d "$INSTALL_DIR" ]] && [[ ! -d "$INSTALL_DIR/.git" ]]; then
+    warn "Installation directory $INSTALL_DIR exists but is not a git repo. Cleaning up..."
+    rm -rf "$INSTALL_DIR"
+fi
+
 if [[ -d "$INSTALL_DIR/.git" ]]; then
     warn "Repository already exists — pulling latest..."
     git -C "$INSTALL_DIR" pull --ff-only
