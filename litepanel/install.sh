@@ -194,6 +194,7 @@ fi
 
 if [[ -d "$INSTALL_DIR/.git" ]]; then
     warn "Repository already exists — pulling latest..."
+    git config --global --add safe.directory "$INSTALL_DIR"
     git -C "$INSTALL_DIR" pull --ff-only
 else
     git clone --depth 1 "$REPO_URL" "$INSTALL_DIR"
