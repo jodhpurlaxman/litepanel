@@ -18,6 +18,17 @@ def list_websites(request):
 
 
 @admin_required
+@require_http_methods(['GET'])
+def admin_dashboard(request):
+    from django.shortcuts import render
+    sites = Website.objects.all().order_by('-created_at')
+    return render(request, 'admin/dashboard.html', {
+        'websites': sites,
+        'active_page': 'websites'
+    })
+
+
+@admin_required
 @csrf_protect
 @require_http_methods(['POST'])
 def create_website(request):

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Websites — LitePanel{% endblock %}
+
+{% block header %}
+    <h1>Websites</h1>
+    <p>Manage your OpenLiteSpeed vhosts and configurations.</p>
+{% endblock %}
+
+{% block content %}
+    <div class="animate-fade">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 2rem;">
+            <button class="btn" onclick="openCreateModal()">
+                <i class="ph ph-plus"></i>
+                Create Website
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Domain</th>
+                            <th>PHP</th>
+                            <th>SSL</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="website-list">
+                        {% for site in websites %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ site.domain }}</td>
+                            <td><span class="status-pill btn-ghost">{{ site.php_version }}</span></td>
+                            <td>
+                                {% if site.ssl_enabled %}
+                                <i class="ph-fill ph-shield-check" style="color: var(--accent-primary); font-size: 1.25rem;"></i>
+                                {% else %}
+                                <i class="ph ph-shield-slash" style="color: var(--text-dim); font-size: 1.25rem;"></i>
+                                {% endif %}
+                            </td>
+                            <td><span class="status-pill status-online">Running</span></td>
+                            <td>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <a href="/admin/websites/{{ site.id }}/config/" class="btn btn-ghost" title="Config">
+                                        <i class="ph ph-sliders"></i>
+                                    </a>
+                                    <button class="btn btn-ghost" style="color: #ef4444;" onclick="deleteSite({{ site.id }}, '{{ site.domain }}')" title="Delete">
+                                        <i class="ph ph-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 4rem; color: var(--text-dim);">
+                                <i class="ph ph-browser" style="font-size: 3rem; display: block; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                No websites found. Create your first one to get started!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Modal Placeholder -->
+    <div id="createModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div class="card animate-fade" style="width: 450px; border-color: var(--accent-primary);">
+            <h2 style="margin-bottom: 1.5rem;">Create New Website</h2>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">Domain Name</label>
+                <input type="text" id="new_domain" placeholder="example.com" style="width: 100%; padding: 0.85rem; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: white; outline: none;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
+                <button class="btn" onclick="submitCreate()">Create Now</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
+    function closeCreateModal() { document.getElementById('createModal').style.display = 'none'; }
+
+    async function deleteSite(id, domain) {
+        if (!confirm(`Are you sure you want to delete ${domain}? This cannot be undone.`)) return;
+        const resp = await fetch(`/admin/websites/${id}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ confirm: true, delete_files: true })
+        });
+        if (resp.ok) window.location.reload();
+        else alert('Failed to delete website');
+    }
+
+    async function submitCreate() {
+        const domain = document.getElementById('new_domain').value.trim();
+        if (!domain) return alert('Enter a domain');
+        // For simplicity, we assume owner_id=1 as the default admin for now
+        const resp = await fetch('/admin/websites/create/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain, owner_id: 1, php_version: '8.1' })
+        });
+        if (resp.ok) window.location.reload();
+        else {
+            const data = await resp.json();
+            alert(data.error || 'Failed to create website');
+        }
+    }
+</script>
+{% endblock %}

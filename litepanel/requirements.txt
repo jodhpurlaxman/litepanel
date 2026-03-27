@@ -5,3 +5,4 @@ cryptography
 APScheduler
 hypothesis
 pytest-django
+netifaces

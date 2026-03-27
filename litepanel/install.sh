@@ -310,6 +310,7 @@ cp "$APP_ROOT/hardening/litepanel.sudoers" "/etc/sudoers.d/litepanel"
 chmod 440 "/etc/sudoers.d/litepanel"
 
 if [[ "$PKG_MGR" == "apt-get" ]]; then
+    PKG_LIST="mariadb-server mariadb-client curl wget git python3-venv python3-pip certbot ufw build-essential python3-dev"
     apt-get install -y fail2ban -qq
 else
     yum install -y fail2ban -q

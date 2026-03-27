@@ -94,7 +94,11 @@ def reload_ols() -> None:
 def create_docroot(domain: str) -> Path:
     domain = _safe_domain(domain)
     docroot = Path(f'/home/{domain}/public_html')
-    docroot.mkdir(parents=True, exist_ok=True)
-    os.chmod(str(docroot.parent), 0o755)
-    os.chmod(str(docroot), 0o755)
+    
+    # Use sudo to create directories in /home as the litepanel user cannot
+    subprocess.run(['sudo', 'mkdir', '-p', str(docroot)], check=True)
+    subprocess.run(['sudo', 'chown', '-R', 'www-data:www-data', f'/home/{domain}'], check=True)
+    subprocess.run(['sudo', 'chmod', '755', f'/home/{domain}'], check=True)
+    subprocess.run(['sudo', 'chmod', '755', str(docroot)], check=True)
+    
     return docroot

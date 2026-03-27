@@ -1,176 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}LitePanel{% endblock %}</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LitePanel{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --accent-primary: #38bdf8;
+            --accent-secondary: #818cf8;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(255, 255, 255, 0.03);
+        }
 
-  body {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #0a1628 0%, #0d2144 50%, #0a1628 100%);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
 
-  .login-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    width: 400px;
-    padding: 40px 36px 32px;
-  }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
 
-  .logo-area {
-    text-align: center;
-    margin-bottom: 24px;
-  }
+        .glass-bg {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(56, 189, 248, 0.07) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 70%, rgba(129, 140, 248, 0.07) 0%, transparent 40%);
+            z-index: -1;
+        }
 
-  .logo-area .logo-icon {
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, #1a6fc4, #0d4a8a);
-    border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-  }
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease-out forwards;
+        }
 
-  .logo-area .logo-icon svg { width: 32px; height: 32px; fill: #fff; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-  .logo-area h1 {
-    font-size: 22px;
-    font-weight: 700;
-    color: #0d2144;
-    letter-spacing: -0.3px;
-  }
+        .logo-area {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
 
-  .login-type {
-    text-align: center;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    margin-bottom: 28px;
-    padding: 6px 14px;
-    border-radius: 20px;
-    display: inline-block;
-    width: 100%;
-  }
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
 
-  .divider {
-    height: 1px;
-    background: #e5e9f0;
-    margin-bottom: 24px;
-  }
+        .logo-area h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
 
-  .form-group { margin-bottom: 18px; }
+        .login-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-primary);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 0.35rem 1rem;
+            border-radius: 100px;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
 
-  .form-group label {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 6px;
-  }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
 
-  .form-group input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1.5px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #111827;
-    transition: border-color 0.2s;
-    outline: none;
-  }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
 
-  .form-group input:focus { border-color: #1a6fc4; }
+        .form-group input {
+            width: 100%;
+            padding: 0.85rem 1.25rem;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.2s;
+            outline: none;
+        }
 
-  .btn-login {
-    width: 100%;
-    padding: 11px;
-    border: none;
-    border-radius: 6px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: opacity 0.2s;
-  }
-  .btn-login:hover { opacity: 0.9; }
+        .form-group input:focus {
+            border-color: var(--accent-primary);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
 
-  .error-msg {
-    margin-top: 14px;
-    padding: 10px 14px;
-    background: #fef2f2;
-    border: 1px solid #fca5a5;
-    border-radius: 6px;
-    color: #b91c1c;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
 
-  .card-footer {
-    text-align: center;
-    margin-top: 24px;
-    font-size: 12px;
-    color: #9ca3af;
-  }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 10px 15px -3px rgba(56, 189, 248, 0.3);
+        }
 
-  @media (max-width: 480px) {
-    .login-card { width: 100%; min-height: 100vh; border-radius: 0; padding: 40px 24px; }
-  }
+        .error-msg {
+            margin-top: 1.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            color: #f87171;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-  {% block extra_styles %}{% endblock %}
-</style>
+        .card-footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        {% block extra_styles %}{% endblock %}
+    </style>
 </head>
 <body>
-<div class="login-card">
-  <div class="logo-area">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-      </svg>
+    <div class="glass-bg"></div>
+
+    <div class="login-card">
+        <div class="logo-area">
+            <i class="ph-bold ph-lightning logo-icon"></i>
+            <h1>LitePanel</h1>
+            {% block login_badge %}{% endblock %}
+        </div>
+
+        <form method="post" action="">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username" autofocus required placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required placeholder="Enter password">
+            </div>
+            <button type="submit" class="btn-login">
+                {% block btn_label %}Log In{% endblock %}
+            </button>
+        </form>
+
+        {% if error %}
+        <div class="error-msg">
+            <i class="ph ph-warning-circle"></i>
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="card-footer">LitePanel v{{ panel_version }}</div>
     </div>
-    <h1>LitePanel</h1>
-  </div>
-
-  {% block login_badge %}{% endblock %}
-  <div class="divider"></div>
-
-  <form method="post" action="">
-    {% csrf_token %}
-    <div class="form-group">
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" autocomplete="username"
-             autofocus required placeholder="Enter username">
-    </div>
-    <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" autocomplete="current-password"
-             required placeholder="Enter password">
-    </div>
-    <button type="submit" class="btn-login {% block btn_class %}{% endblock %}">
-      {% block btn_label %}Log In{% endblock %}
-    </button>
-  </form>
-
-  {% if error %}
-  <div class="error-msg">
-    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-    </svg>
-    {{ error }}
-  </div>
-  {% endif %}
-
-  <div class="card-footer">LitePanel v{{ panel_version }}</div>
-</div>
 </body>
 </html>

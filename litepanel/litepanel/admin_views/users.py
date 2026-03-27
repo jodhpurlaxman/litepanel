@@ -12,8 +12,12 @@ from litepanel.audit import log_action
 @admin_required
 @require_http_methods(['GET'])
 def list_users(request):
-    users = list(User.objects.values('id', 'username', 'email', 'role', 'is_active', 'created_at'))
-    return JsonResponse({'users': users})
+    from django.shortcuts import render
+    users = User.objects.all().order_by('-created_at')
+    return render(request, 'admin/users.html', {
+        'users': users,
+        'active_page': 'users'
+    })
 
 
 @admin_required
