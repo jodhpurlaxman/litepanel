@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # LitePanel Installer
-# Usage: bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/install.sh)
+# Usage: bash <(curl -fsSL https://raw.githubusercontent.com/jodhpurlaxman/litepanel/main/litepanel/install.sh)
 # =============================================================================
 set -euo pipefail
 
@@ -16,7 +16,7 @@ error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()     { error "$*"; exit 1; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
-REPO_URL="${LITEPANEL_REPO:-https://github.com/YOUR_USER/litepanel.git}"
+REPO_URL="${LITEPANEL_REPO:-https://github.com/jodhpurlaxman/litepanel.git}"
 INSTALL_DIR="/usr/local/litepanel"
 VENV_DIR="$INSTALL_DIR/venv"
 LOG_DIR="/var/log/litepanel"
