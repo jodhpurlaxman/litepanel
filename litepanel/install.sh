@@ -74,14 +74,26 @@ info "Step 1/9 — Installing system packages..."
 if [[ "$PKG_MGR" == "apt-get" ]]; then
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -qq
-    apt-get install -y -qq \
-        python3 python3-pip python3-venv python3-dev \
-        git curl wget openssl \
-        mariadb-server mariadb-client \
-        pure-ftpd pure-ftpd-mysql \
-        certbot \
-        build-essential libssl-dev libffi-dev \
+    
+    PACKAGES=(
+        python3 python3-pip python3-venv python3-dev
+        git curl wget openssl
+        mariadb-server mariadb-client
+        pure-ftpd pure-ftpd-mysql
+        certbot
+        build-essential libssl-dev libffi-dev
         ufw
+    )
+
+    for PKG in "${PACKAGES[@]}"; do
+        info "Installing: $PKG"
+        if apt-get install -y -qq "$PKG" 2>/dev/null; then
+            success "$PKG installed"
+        else
+            warn "Failed to install $PKG — attempting to fix and retry..."
+            apt-get install -y "$PKG" || die "FATAL: Could not install $PKG"
+        fi
+    done
 else
     yum install -y -q \
         python3 python3-pip python3-devel \
