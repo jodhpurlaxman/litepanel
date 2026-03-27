@@ -272,26 +272,39 @@
             <span>LitePanel</span>
         </a>
 
-        <ul class="nav-links">
-            <li class="nav-item">
-                <a href="/admin/dashboard/" class="nav-link {% if active_page == 'websites' %}active{% endif %}">
-                    <i class="ph ph-globe"></i>
-                    <span>Websites</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/admin/users/" class="nav-link {% if active_page == 'users' %}active{% endif %}">
-                    <i class="ph ph-users"></i>
-                    <span>Users</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="/admin/settings/" class="nav-link {% if active_page == 'settings' %}active{% endif %}">
-                    <i class="ph ph-gear-six"></i>
-                    <span>Settings</span>
-                </a>
-            </li>
-        </ul>
+        <nav class="nav-links">
+            {% if panel_user.role == 'admin' %}
+            <a href="/admin/dashboard/" class="nav-link {% if active_page == 'websites' %}active{% endif %}">
+                <i class="ph ph-globe"></i>
+                <span>Websites</span>
+            </a>
+            <a href="/admin/users/" class="nav-link {% if active_page == 'users' %}active{% endif %}">
+                <i class="ph ph-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="/admin/backup/" class="nav-link {% if active_page == 'backup' %}active{% endif %}">
+                <i class="ph ph-cloud-arrow-up"></i>
+                <span>Backup</span>
+            </a>
+            <a href="/admin/settings/" class="nav-link {% if active_page == 'settings' %}active{% endif %}">
+                <i class="ph ph-gear"></i>
+                <span>Settings</span>
+            </a>
+            {% else %}
+            <a href="/user/dashboard/" class="nav-link {% if active_page == 'websites' %}active{% endif %}">
+                <i class="ph ph-house"></i>
+                <span>My Dashboard</span>
+            </a>
+            <a href="/user/dashboard/" class="nav-link">
+                <i class="ph ph-database"></i>
+                <span>My Databases</span>
+            </a>
+            <a href="/user/profile/" class="nav-link">
+                <i class="ph ph-user"></i>
+                <span>Account Profile</span>
+            </a>
+            {% endif %}
+        </nav>
 
         <div class="sidebar-footer">
             <a href="/logout/" class="nav-link">
