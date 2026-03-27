@@ -76,13 +76,7 @@ if [[ "$PKG_MGR" == "apt-get" ]]; then
     apt-get update -qq
     
     PACKAGES=(
-        python3 python3-pip python3-venv python3-dev
-        git curl wget openssl
-        mariadb-server mariadb-client
-        pure-ftpd pure-ftpd-mysql
-        certbot
-        build-essential libssl-dev libffi-dev
-        ufw
+        python3 python3-pip python3-venv python3-dev git curl wget openssl mariadb-server mariadb-client pure-ftpd pure-ftpd-mysql certbot build-essential libssl-dev libffi-dev ufw
     )
 
     for PKG in "${PACKAGES[@]}"; do
