@@ -16,11 +16,10 @@ error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()     { error "$*"; exit 1; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_URL="${LITEPANEL_REPO:-https://github.com/jodhpurlaxman/litepanel.git}"
 INSTALL_DIR="/usr/local/litepanel"
-# If we are inside a subdirectory (like litepanel/install.sh), we use that as APP_ROOT
-APP_ROOT="$SCRIPT_DIR"
+# The repository has a nested structure where the app is in the 'litepanel' directory
+APP_ROOT="$INSTALL_DIR/litepanel"
 VENV_DIR="$INSTALL_DIR/venv"
 LOG_DIR="/var/log/litepanel"
 DB_DIR="$INSTALL_DIR/db"
