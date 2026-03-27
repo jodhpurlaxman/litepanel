@@ -137,10 +137,11 @@ info "Step 3/9 — Configuring MariaDB..."
 systemctl enable --now mariadb 2>/dev/null || systemctl enable --now mysql 2>/dev/null || true
 
 # Secure MariaDB and create panel DB user
-DB_ROOT_PASS=$(openssl rand -base64 24)
-DB_PANEL_PASS=$(openssl rand -base64 24)
-
-mysql -u root <<SQL 2>/dev/null || true
+if [[ ! -f /root/.my.cnf ]]; then
+    info "Securing MariaDB..."
+    DB_ROOT_PASS=$(openssl rand -base64 24)
+    
+    mysql -u root <<SQL 2>/dev/null || true
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
 DELETE FROM mysql.user WHERE User='';
 DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost','127.0.0.1','::1');
@@ -149,20 +150,26 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 SQL
 
-# Save root password
-echo "[client]
+    # Save root password
+    echo "[client]
 user=root
 password=${DB_ROOT_PASS}" > /root/.my.cnf
-chmod 600 /root/.my.cnf
-
-success "MariaDB configured"
+    chmod 600 /root/.my.cnf
+    success "MariaDB secured"
+else
+    success "MariaDB already secured — skipping"
+fi
 
 # ── Step 4: Create system user and directories ────────────────────────────────
 info "Step 4/9 — Creating directories and system user..."
 
 # System user (no login shell)
 if ! id "$PANEL_USER" &>/dev/null; then
+    info "Creating system user $PANEL_USER..."
     useradd --system --no-create-home --shell /usr/sbin/nologin "$PANEL_USER"
+    success "User $PANEL_USER created"
+else
+    success "User $PANEL_USER already exists — skipping"
 fi
 
 mkdir -p "$INSTALL_DIR" "$LOG_DIR" "$DB_DIR" "$SSL_DIR"
@@ -228,7 +235,8 @@ fi
 # ── Step 8: Self-signed SSL cert for panel ports ──────────────────────────────
 info "Step 8/9 — Generating self-signed SSL certificate for panel..."
 
-if [[ ! -f "$SSL_DIR/panel.crt" ]]; then
+mkdir -p "$SSL_DIR"
+if [[ ! -f "$SSL_DIR/panel.crt" ]] || [[ ! -f "$SSL_DIR/panel.key" ]]; then
     SERVER_IP=$(curl -4 -fsSL https://ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
     openssl req -x509 -nodes -days 3650 -newkey rsa:2048 \
         -keyout "$SSL_DIR/panel.key" \
