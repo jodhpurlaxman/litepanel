@@ -16,8 +16,11 @@ error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()     { error "$*"; exit 1; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_URL="${LITEPANEL_REPO:-https://github.com/jodhpurlaxman/litepanel.git}"
 INSTALL_DIR="/usr/local/litepanel"
+# If we are inside a subdirectory (like litepanel/install.sh), we use that as APP_ROOT
+APP_ROOT="$SCRIPT_DIR"
 VENV_DIR="$INSTALL_DIR/venv"
 LOG_DIR="/var/log/litepanel"
 DB_DIR="$INSTALL_DIR/db"
@@ -203,7 +206,7 @@ info "Step 6/9 — Setting up Python virtualenv..."
 
 python3 -m venv "$VENV_DIR"
 "$VENV_DIR/bin/pip" install --quiet --upgrade pip
-"$VENV_DIR/bin/pip" install --quiet -r "$INSTALL_DIR/requirements.txt"
+"$VENV_DIR/bin/pip" install --quiet -r "$APP_ROOT/requirements.txt"
 
 success "Python dependencies installed"
 
@@ -253,7 +256,7 @@ fi
 # ── Step 9: Django setup ──────────────────────────────────────────────────────
 info "Step 9/9 — Running Django migrations and setup..."
 
-cd "$INSTALL_DIR"
+cd "$APP_ROOT"
 export DJANGO_SETTINGS_MODULE=litepanel.settings
 
 # Check requirements
@@ -289,8 +292,8 @@ success "Django setup complete"
 # ── Systemd services ──────────────────────────────────────────────────────────
 info "Installing systemd services..."
 
-cp "$INSTALL_DIR/litepanel-admin.service" "$SERVICE_DIR/litepanel-admin.service"
-cp "$INSTALL_DIR/litepanel-user.service"  "$SERVICE_DIR/litepanel-user.service"
+cp "$APP_ROOT/litepanel-admin.service" "$SERVICE_DIR/litepanel-admin.service"
+cp "$APP_ROOT/litepanel-user.service"  "$SERVICE_DIR/litepanel-user.service"
 
 # Fix paths in service files to use venv
 sed -i "s|/usr/local/litepanel/venv|${VENV_DIR}|g" \
@@ -303,7 +306,7 @@ systemctl enable --now litepanel-user
 
 # Deploy hardening configs
 info "Deploying hardening configurations..."
-cp "$INSTALL_DIR/hardening/litepanel.sudoers" "/etc/sudoers.d/litepanel"
+cp "$APP_ROOT/hardening/litepanel.sudoers" "/etc/sudoers.d/litepanel"
 chmod 440 "/etc/sudoers.d/litepanel"
 
 if [[ "$PKG_MGR" == "apt-get" ]]; then
@@ -311,15 +314,15 @@ if [[ "$PKG_MGR" == "apt-get" ]]; then
 else
     yum install -y fail2ban -q
 fi
-cp "$INSTALL_DIR/hardening/fail2ban-litepanel.conf" "/etc/fail2ban/jail.d/litepanel.conf"
+cp "$APP_ROOT/hardening/fail2ban-litepanel.conf" "/etc/fail2ban/jail.d/litepanel.conf"
 systemctl enable --now fail2ban
 
 success "Services and hardening deployed"
 
 # ── CLI symlink ───────────────────────────────────────────────────────────────
 info "Installing litepanel CLI..."
-chmod +x "$INSTALL_DIR/litepanel-cli"
-ln -sf "$INSTALL_DIR/litepanel-cli" /usr/local/bin/litepanel
+chmod +x "$APP_ROOT/litepanel-cli"
+ln -sf "$APP_ROOT/litepanel-cli" /usr/local/bin/litepanel
 success "CLI installed → /usr/local/bin/litepanel"
 
 # ── Firewall ──────────────────────────────────────────────────────────────────
