@@ -231,7 +231,7 @@ SECRET_KEY=${SECRET_KEY}
 FERNET_KEY=${FERNET_KEY}
 EOF
     chmod 600 "$ENV_FILE"
-    chown root:root "$ENV_FILE"
+    chown "$PANEL_USER":"$PANEL_USER" "$ENV_FILE"
     success "Secrets generated → $ENV_FILE"
 fi
 
@@ -347,6 +347,13 @@ elif command -v firewall-cmd &>/dev/null; then
     firewall-cmd --reload 2>/dev/null || true
     success "firewalld configured"
 fi
+
+# Final ownership fix
+info "Ensuring correct file permissions..."
+chown -R "$PANEL_USER":"$PANEL_USER" "$INSTALL_DIR" "$LOG_DIR"
+chmod 600 "$INSTALL_DIR/.env" 2>/dev/null || true
+
+success "LitePanel installation complete! 🛡️"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 SERVER_IP=$(curl -4 -fsSL https://ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
