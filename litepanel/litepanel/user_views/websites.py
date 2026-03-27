@@ -10,5 +10,6 @@ def user_dashboard(request):
     sites = Website.objects.filter(owner_id=user_id).order_by('-created_at')
     return render(request, 'user/dashboard.html', {
         'websites': sites,
-        'active_page': 'websites'
+        'active_page': 'websites',
+        'panel_user': request.panel_user
     })

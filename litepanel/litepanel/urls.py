@@ -1,13 +1,13 @@
 """URL configuration for Lite Hosting Panel."""
 from django.urls import path
-from litepanel.views.auth import admin_login, user_login, logout_view
+from litepanel.views.auth import login_index, admin_login, user_login, logout_view
 from litepanel.admin_views import users as au, websites as aw, backup as ab
 from litepanel.user_views import ftp as uf, git as ug, ssl as us, databases as ud, websites as uw
 from litepanel.api import views as av
 
 urlpatterns = [
     # ── Login / logout ────────────────────────────────────────────────────
-    path('',          admin_login,  name='admin_login'),   # port 2087 root
+    path('',          login_index,  name='login_index'),   # Auto-detect port
     path('login/',    user_login,   name='user_login'),    # port 2083 root
     path('logout/',   logout_view,  name='logout'),
 

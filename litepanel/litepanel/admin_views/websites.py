@@ -24,7 +24,8 @@ def admin_dashboard(request):
     sites = Website.objects.all().order_by('-created_at')
     return render(request, 'admin/dashboard.html', {
         'websites': sites,
-        'active_page': 'websites'
+        'active_page': 'websites',
+        'panel_user': request.panel_user
     })
 
 

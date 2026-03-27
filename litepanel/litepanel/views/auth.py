@@ -9,6 +9,14 @@ from django.views.decorators.csrf import csrf_protect
 from litepanel.auth import authenticate_user, AccountLocked, InvalidCredentials
 
 
+def login_index(request):
+    """Route root / based on port: 2087 -> admin, 2083 -> user."""
+    port = int(request.META.get('SERVER_PORT', 2083))
+    if port == 2087:
+        return admin_login(request)
+    return user_login(request)
+
+
 @csrf_protect
 @require_http_methods(['GET', 'POST'])
 def admin_login(request):

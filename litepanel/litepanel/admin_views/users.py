@@ -16,7 +16,8 @@ def list_users(request):
     users = User.objects.all().order_by('-created_at')
     return render(request, 'admin/users.html', {
         'users': users,
-        'active_page': 'users'
+        'active_page': 'users',
+        'panel_user': request.panel_user
     })
 
 
