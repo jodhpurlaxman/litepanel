@@ -1,0 +1,22 @@
+[Unit]
+Description=Lite Hosting Panel — User Interface (port 2083)
+After=network.target
+
+[Service]
+Type=simple
+User=litepanel
+Group=litepanel
+WorkingDirectory=/usr/local/litepanel
+EnvironmentFile=/usr/local/litepanel/.env
+ExecStart=/usr/local/litepanel/venv/bin/gunicorn \
+    --workers 2 \
+    --bind 127.0.0.1:2083 \
+    --access-logfile /var/log/litepanel/user-access.log \
+    --error-logfile  /var/log/litepanel/user-error.log \
+    --timeout 60 \
+    litepanel.wsgi:application
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

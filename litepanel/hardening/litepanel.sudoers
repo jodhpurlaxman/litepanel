@@ -1,0 +1,1 @@
+litepanel ALL=(ALL) NOPASSWD: /usr/local/lsws/bin/lswsctrl, /usr/bin/pure-pw, /usr/bin/certbot, /usr/bin/openssl, /usr/bin/apt-get

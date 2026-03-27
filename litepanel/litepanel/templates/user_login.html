@@ -1,0 +1,15 @@
+{% extends "base_login.html" %}
+
+{% block title %}User Login — LitePanel{% endblock %}
+
+{% block extra_styles %}
+.login-type { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.btn-login   { background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; }
+{% endblock %}
+
+{% block login_badge %}
+<div class="login-type">User Login</div>
+{% endblock %}
+
+{% block btn_class %}btn-user{% endblock %}
+{% block btn_label %}Log In{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base_login.html" %}
+
+{% block title %}Administrator Login — LitePanel{% endblock %}
+
+{% block extra_styles %}
+.login-type { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.btn-login   { background: linear-gradient(135deg, #1a6fc4, #0d4a8a); color: #fff; }
+{% endblock %}
+
+{% block login_badge %}
+<div class="login-type">Administrator Login</div>
+{% endblock %}
+
+{% block btn_class %}btn-admin{% endblock %}
+{% block btn_label %}Log In as Administrator{% endblock %}
