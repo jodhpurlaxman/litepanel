@@ -11,6 +11,8 @@ EnvironmentFile=/usr/local/litepanel/.env
 ExecStart=/usr/local/litepanel/venv/bin/gunicorn \
     --workers 2 \
     --bind 0.0.0.0:2083 \
+    --certfile /usr/local/litepanel/ssl/panel.crt \
+    --keyfile  /usr/local/litepanel/ssl/panel.key \
     --access-logfile /var/log/litepanel/user-access.log \
     --error-logfile  /var/log/litepanel/user-error.log \
     --timeout 60 \
