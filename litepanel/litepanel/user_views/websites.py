@@ -2,7 +2,9 @@
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from litepanel.models import Website
+from litepanel.user_views.decorators import login_required
 
+@login_required
 @require_http_methods(['GET'])
 def user_dashboard(request):
     # Only show websites owned by the logged-in user
