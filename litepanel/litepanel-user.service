@@ -6,11 +6,11 @@ After=network.target
 Type=simple
 User=litepanel
 Group=litepanel
-WorkingDirectory=/usr/local/litepanel
+WorkingDirectory=/usr/local/litepanel/litepanel
 EnvironmentFile=/usr/local/litepanel/.env
 ExecStart=/usr/local/litepanel/venv/bin/gunicorn \
     --workers 2 \
-    --bind 127.0.0.1:2083 \
+    --bind 0.0.0.0:2083 \
     --access-logfile /var/log/litepanel/user-access.log \
     --error-logfile  /var/log/litepanel/user-error.log \
     --timeout 60 \

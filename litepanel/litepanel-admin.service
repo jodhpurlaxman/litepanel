@@ -6,11 +6,11 @@ After=network.target
 Type=simple
 User=litepanel
 Group=litepanel
-WorkingDirectory=/usr/local/litepanel
+WorkingDirectory=/usr/local/litepanel/litepanel
 EnvironmentFile=/usr/local/litepanel/.env
 ExecStart=/usr/local/litepanel/venv/bin/gunicorn \
     --workers 2 \
-    --bind 127.0.0.1:2087 \
+    --bind 0.0.0.0:2087 \
     --certfile /usr/local/litepanel/ssl/panel.crt \
     --keyfile  /usr/local/litepanel/ssl/panel.key \
     --access-logfile /var/log/litepanel/admin-access.log \
