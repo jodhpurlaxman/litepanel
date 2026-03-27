@@ -12,6 +12,7 @@ urlpatterns = [
     path('logout/',   logout_view,  name='logout'),
 
     # ── Admin views ───────────────────────────────────────────────────────
+    path('admin/dashboard/',                aw.list_websites,   name='admin_dashboard'),
     path('admin/users/',                    au.list_users,      name='admin_list_users'),
     path('admin/users/create/',             au.create_user,     name='admin_create_user'),
     path('admin/users/<int:user_id>/delete/', au.delete_user,   name='admin_delete_user'),
@@ -26,6 +27,7 @@ urlpatterns = [
     path('admin/export/users/',    ab.export_users,    name='admin_export_users'),
 
     # ── User views ────────────────────────────────────────────────────────
+    path('user/dashboard/',                 ud.list_databases,  name='user_dashboard'),
     path('user/sites/<int:site_id>/ftp/',                        uf.list_ftp,     name='user_list_ftp'),
     path('user/sites/<int:site_id>/ftp/create/',                 uf.create_ftp,   name='user_create_ftp'),
     path('user/sites/<int:site_id>/ftp/<int:account_id>/delete/',uf.delete_ftp,   name='user_delete_ftp'),
