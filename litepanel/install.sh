@@ -322,6 +322,8 @@ success "Services and hardening deployed"
 # ── CLI symlink ───────────────────────────────────────────────────────────────
 info "Installing litepanel CLI..."
 chmod +x "$APP_ROOT/litepanel-cli"
+# Fix shebang to use venv
+sed -i "1s|#!.*|#!${VENV_DIR}/bin/python3|" "$APP_ROOT/litepanel-cli"
 ln -sf "$APP_ROOT/litepanel-cli" /usr/local/bin/litepanel
 success "CLI installed → /usr/local/bin/litepanel"
 
