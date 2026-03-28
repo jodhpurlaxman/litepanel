@@ -44,8 +44,8 @@
                                 <i class="ph ph-shield-check"></i> Active
                             </span>
                             {% else %}
-                            <button class="btn btn-ghost btn-xs" onclick="requestSSL({{ site.id }}, '{{ site.domain }}', this)" title="Enable SSL">
-                                <i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable
+                            <button class="btn btn-ghost btn-xs" onclick="requestSSL({{ site.id }}, this)" title="Enable SSL">
+                                <i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable SSL
                             </button>
                             {% endif %}
                         </td>
@@ -58,7 +58,7 @@
                                 <button class="btn btn-ghost btn-sm" onclick="openConfigModal({{ site.id }}, '{{ site.php_version }}')" title="Configure">
                                     <i class="ph ph-sliders"></i>
                                 </button>
-                                <button class="btn btn-ghost btn-sm" onclick="deleteSite({{ site.id }}, '{{ site.domain }}', this)" title="Delete">
+                                <button class="btn btn-ghost btn-sm" onclick="deleteSite({{ site.id }}, this)" title="Delete">
                                     <i class="ph ph-trash"></i>
                                 </button>
                             </div>
@@ -104,6 +104,10 @@
                 <option value="8.3">PHP 8.3</option>
             </select>
         </div>
+        <label style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem; cursor:pointer; font-size:0.9rem; color:var(--text-dim);">
+            <input type="checkbox" id="new_ssl" style="width:16px; height:16px; accent-color:var(--accent-primary); cursor:pointer;">
+            Enable SSL (Let's Encrypt) — DNS must already point to this server
+        </label>
         <div style="display:flex; justify-content:flex-end; gap:1rem;">
             <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
             <button class="btn btn-primary" id="createBtn" onclick="submitCreate()">
@@ -141,6 +145,7 @@
         document.getElementById('createModal').style.display = 'flex';
         document.getElementById('createError').style.display = 'none';
         document.getElementById('new_domain').value = '';
+        document.getElementById('new_ssl').checked = false;
     }
     function closeCreateModal() { document.getElementById('createModal').style.display = 'none'; }
 
@@ -155,6 +160,7 @@
         const domain = document.getElementById('new_domain').value.trim();
         const owner_id = document.getElementById('new_owner').value;
         const php_version = document.getElementById('new_php').value;
+        const enable_ssl = document.getElementById('new_ssl').checked;
         const errBox = document.getElementById('createError');
         const btn = document.getElementById('createBtn');
 
@@ -169,16 +175,40 @@
             body: JSON.stringify({ domain, owner_id: parseInt(owner_id), php_version })
         });
 
-        if (resp.ok) {
-            closeCreateModal();
-            window.location.reload();
-        } else {
-            const data = await resp.json();
+        if (!resp.ok) {
+            const data = await resp.json().catch(() => ({}));
             errBox.textContent = data.error || 'Failed to create website.';
             errBox.style.display = 'block';
             btn.disabled = false;
             btn.innerHTML = '<i class="ph ph-plus"></i> Create Now';
+            return;
         }
+
+        const site = await resp.json();
+
+        if (enable_ssl) {
+            btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i> Requesting SSL...';
+            const sslResp = await fetch(`/admin/websites/${site.id}/ssl/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+            });
+            if (!sslResp.ok) {
+                const sslData = await sslResp.json().catch(() => ({}));
+                const msg = sslData.code === 'DNS_CHECK_FAILED'
+                    ? 'Site created but SSL failed: DNS not pointing to this server yet.'
+                    : `Site created but SSL failed: ${sslData.error || 'Unknown error'}`;
+                errBox.textContent = msg;
+                errBox.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-plus"></i> Create Now';
+                // Still reload to show the new site
+                setTimeout(() => { closeCreateModal(); window.location.reload(); }, 2000);
+                return;
+            }
+        }
+
+        closeCreateModal();
+        window.location.reload();
     }
 
     async function submitConfig() {
@@ -193,62 +223,42 @@
         else alert('Failed to update configuration.');
     }
 
-    async function deleteSite(id, domain, btn) {
-        if (btn.dataset.confirming) {
-            btn.dataset.confirming = '';
+    async function deleteSite(id, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i>';
+        const resp = await fetch(`/admin/websites/${id}/delete/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ confirm: true, delete_files: true })
+        });
+        if (resp.ok) {
+            window.location.reload();
+        } else {
+            const data = await resp.json().catch(() => ({}));
+            btn.disabled = false;
             btn.innerHTML = '<i class="ph ph-trash"></i>';
             btn.style.color = '#ef4444';
-            const resp = await fetch(`/admin/websites/${id}/delete/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ confirm: true, delete_files: true })
-            });
-            if (resp.ok) window.location.reload();
-            else {
-                const data = await resp.json().catch(() => ({}));
-                alert(data.error || 'Failed to delete website.');
-                btn.innerHTML = '<i class="ph ph-trash"></i>';
-            }
-        } else {
-            btn.dataset.confirming = '1';
-            btn.innerHTML = '<i class="ph ph-warning"></i> Sure?';
-            btn.style.color = '#f59e0b';
-            setTimeout(() => {
-                if (btn.dataset.confirming) {
-                    btn.dataset.confirming = '';
-                    btn.innerHTML = '<i class="ph ph-trash"></i>';
-                    btn.style.color = '#ef4444';
-                }
-            }, 3000);
+            alert(data.error || 'Failed to delete website.');
         }
     }
 
-    async function requestSSL(id, domain, btn) {
-        if (btn.dataset.confirming) {
-            btn.dataset.confirming = '';
-            btn.disabled = true;
-            btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i> Requesting...';
-            const resp = await fetch(`/admin/websites/${id}/ssl/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
-            });
-            if (resp.ok) {
-                window.location.reload();
-            } else {
-                const data = await resp.json().catch(() => ({}));
-                alert(data.error || 'SSL request failed. Ensure DNS is pointing to this server.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable';
-            }
+    async function requestSSL(id, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i> Requesting...';
+        const resp = await fetch(`/admin/websites/${id}/ssl/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+        });
+        if (resp.ok) {
+            window.location.reload();
         } else {
-            btn.dataset.confirming = '1';
-            btn.innerHTML = '<i class="ph ph-warning"></i> Click again';
-            setTimeout(() => {
-                if (btn.dataset.confirming) {
-                    btn.dataset.confirming = '';
-                    btn.innerHTML = '<i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable';
-                }
-            }, 3000);
+            const data = await resp.json().catch(() => ({}));
+            btn.disabled = false;
+            btn.innerHTML = '<i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable SSL';
+            const msg = data.code === 'DNS_CHECK_FAILED'
+                ? `DNS not pointing to this server yet.\n\nPoint your domain's A record to this server's IP, wait for propagation, then try again.`
+                : (data.error || 'SSL request failed.');
+            alert(msg);
         }
     }
 
