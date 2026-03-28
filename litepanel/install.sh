@@ -16,7 +16,7 @@ error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()     { error "$*"; exit 1; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
-REPO_URL="${LITEPANEL_REPO:-https://github.com/YOUR_USER/litepanel.git}"
+REPO_URL="${LITEPANEL_REPO:-https://github.com/jodhpurlaxman/litepanel.git}"
 INSTALL_DIR="/usr/local/litepanel"
 # The repository has a nested structure where the app is in the 'litepanel' directory
 APP_ROOT="$INSTALL_DIR/litepanel"
