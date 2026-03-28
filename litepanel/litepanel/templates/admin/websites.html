@@ -44,7 +44,7 @@
                                 <i class="ph ph-shield-check"></i> Active
                             </span>
                             {% else %}
-                            <button class="btn btn-ghost btn-xs" onclick="requestSSL({{ site.id }}, '{{ site.domain }}')" title="Enable SSL">
+                            <button class="btn btn-ghost btn-xs" onclick="requestSSL({{ site.id }}, '{{ site.domain }}', this)" title="Enable SSL">
                                 <i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable
                             </button>
                             {% endif %}
@@ -58,7 +58,7 @@
                                 <button class="btn btn-ghost btn-sm" onclick="openConfigModal({{ site.id }}, '{{ site.php_version }}')" title="Configure">
                                     <i class="ph ph-sliders"></i>
                                 </button>
-                                <button class="btn btn-ghost btn-sm" style="color:#ef4444;" onclick="deleteSite({{ site.id }}, '{{ site.domain }}')" title="Delete">
+                                <button class="btn btn-ghost btn-sm" onclick="deleteSite({{ site.id }}, '{{ site.domain }}', this)" title="Delete">
                                     <i class="ph ph-trash"></i>
                                 </button>
                             </div>
@@ -193,14 +193,11 @@
         else alert('Failed to update configuration.');
     }
 
-    async function deleteSite(id, domain) {
-        // Use inline confirm to avoid browser dialog suppression
-        const btn = event.target.closest('button');
+    async function deleteSite(id, domain, btn) {
         if (btn.dataset.confirming) {
             btn.dataset.confirming = '';
             btn.innerHTML = '<i class="ph ph-trash"></i>';
             btn.style.color = '#ef4444';
-
             const resp = await fetch(`/admin/websites/${id}/delete/`, {
                 method: 'POST',
                 headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
@@ -226,23 +223,32 @@
         }
     }
 
-    async function requestSSL(id, domain) {
-        if (!confirm(`Request a free Let's Encrypt SSL certificate for ${domain}?`)) return;
-        const btn = event.target.closest('button');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i>';
-
-        const resp = await fetch(`/admin/websites/${id}/ssl/`, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
-        });
-        if (resp.ok) {
-            window.location.reload();
+    async function requestSSL(id, domain, btn) {
+        if (btn.dataset.confirming) {
+            btn.dataset.confirming = '';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i> Requesting...';
+            const resp = await fetch(`/admin/websites/${id}/ssl/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+            });
+            if (resp.ok) {
+                window.location.reload();
+            } else {
+                const data = await resp.json().catch(() => ({}));
+                alert(data.error || 'SSL request failed. Ensure DNS is pointing to this server.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable';
+            }
         } else {
-            const data = await resp.json();
-            alert(data.error || 'SSL request failed. Ensure DNS is pointing to this server.');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable';
+            btn.dataset.confirming = '1';
+            btn.innerHTML = '<i class="ph ph-warning"></i> Click again';
+            setTimeout(() => {
+                if (btn.dataset.confirming) {
+                    btn.dataset.confirming = '';
+                    btn.innerHTML = '<i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable';
+                }
+            }, 3000);
         }
     }
 
