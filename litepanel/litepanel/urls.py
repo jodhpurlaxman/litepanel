@@ -9,6 +9,7 @@ urlpatterns = [
     # ── Login / logout ────────────────────────────────────────────────────
     path('',          login_index,  name='login_index'),   # Auto-detect port
     path('login/',    user_login,   name='user_login'),    # port 2083 root
+    path('admin/login/', admin_login, name='admin_login'),
     path('logout/',   logout_view,  name='logout'),
 
     # ── Admin views ───────────────────────────────────────────────────────
