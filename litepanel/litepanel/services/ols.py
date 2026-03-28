@@ -61,10 +61,20 @@ def write_vhost_config(domain: str, php_version: str = '8.1', ssl: bool = False)
     ssl_block = SSL_BLOCK.format(domain=domain) if ssl else ''
     config = VHOST_TEMPLATE.format(domain=domain, php_ver_flat=php_flat, ssl_block=ssl_block)
 
-    vhost_path = Path(VHOST_DIR) / domain
-    vhost_path.mkdir(parents=True, exist_ok=True)
-    conf_file = vhost_path / 'vhconf.conf'
-    conf_file.write_text(config)
+    vhost_dir = Path(VHOST_DIR) / domain
+    conf_file = vhost_dir / 'vhconf.conf'
+
+    # Create dir with sudo since litepanel user can't write to lsws conf
+    subprocess.run(['sudo', 'mkdir', '-p', str(vhost_dir)], check=True, timeout=10)
+
+    # Write config via sudo tee
+    result = subprocess.run(
+        ['sudo', 'tee', str(conf_file)],
+        input=config, text=True, capture_output=True, timeout=10
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f'Failed to write vhost config: {result.stderr}')
+
     logger.info('Wrote OLS vhost config: %s', conf_file)
     return conf_file
 
@@ -72,9 +82,9 @@ def write_vhost_config(domain: str, php_version: str = '8.1', ssl: bool = False)
 def delete_vhost_config(domain: str) -> None:
     domain = _safe_domain(domain)
     conf_file = Path(VHOST_DIR) / domain / 'vhconf.conf'
-    if conf_file.exists():
-        conf_file.unlink()
-        logger.info('Deleted OLS vhost config: %s', conf_file)
+    subprocess.run(['sudo', 'rm', '-f', str(conf_file)], timeout=10)
+    subprocess.run(['sudo', 'rmdir', '--ignore-fail-on-non-empty', str(Path(VHOST_DIR) / domain)], timeout=10)
+    logger.info('Deleted OLS vhost config: %s', conf_file)
 
 
 def reload_ols() -> None:
