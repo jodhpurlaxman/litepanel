@@ -18,17 +18,7 @@ GIT_TIMEOUT = 60
 ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
 
 
-def _fernet() -> Fernet:
-    return Fernet(settings.FERNET_KEY.encode() if isinstance(settings.FERNET_KEY, str)
-                  else settings.FERNET_KEY)
-
-
-def encrypt_credentials(plaintext: str) -> bytes:
-    return _fernet().encrypt(plaintext.encode())
-
-
-def decrypt_credentials(ciphertext: bytes) -> str:
-    return _fernet().decrypt(ciphertext).decode()
+from litepanel.utils.encryption import encrypt_data as encrypt_credentials, decrypt_data as decrypt_credentials
 
 
 def _sanitize_stderr(stderr: str) -> str:

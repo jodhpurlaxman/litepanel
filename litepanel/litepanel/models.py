@@ -224,6 +224,57 @@ class APIToken(models.Model):
         return f'{self.user.username} / {self.name}'
 
 
+
+# ---------------------------------------------------------------------------
+# Backup
+# ---------------------------------------------------------------------------
+
+class BackupConfig(models.Model):
+    TYPE_S3 = 's3'
+    TYPE_SFTP = 'sftp'
+    TYPE_LOCAL = 'local'
+    TYPE_CHOICES = [(TYPE_S3, 'S3'), (TYPE_SFTP, 'SFTP'), (TYPE_LOCAL, 'Local')]
+
+    name = models.CharField(max_length=100, unique=True)
+    repo_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    destination = models.CharField(max_length=512)
+    encrypted_credentials = models.BinaryField(null=True, blank=True)
+    retention_days = models.PositiveIntegerField(default=7)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        app_label = 'litepanel'
+
+    def __str__(self):
+        return f"{self.name} ({self.repo_type})"
+
+
+class BackupJob(models.Model):
+    STATUS_RUNNING = 'running'
+    STATUS_SUCCESS = 'success'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_RUNNING, 'running'),
+        (STATUS_SUCCESS, 'success'),
+        (STATUS_FAILED, 'failed'),
+    ]
+
+    config = models.ForeignKey(BackupConfig, on_delete=models.CASCADE, related_name='jobs')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_RUNNING)
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    log_output = models.TextField(blank=True)
+    snapshot_id = models.CharField(max_length=64, blank=True)
+    backup_size = models.BigIntegerField(default=0)
+
+    class Meta:
+        app_label = 'litepanel'
+
+    def __str__(self):
+        return f"Job {self.id} - {self.status} ({self.start_time})"
+
+
 # ---------------------------------------------------------------------------
 # AuditLog
 # ---------------------------------------------------------------------------
