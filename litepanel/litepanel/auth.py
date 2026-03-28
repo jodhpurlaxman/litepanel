@@ -50,6 +50,10 @@ def authenticate_user(username: str, password: str, ip_address: str) -> User:
         raise AccountLocked(remaining_minutes=remaining)
 
     if not user.check_password(password):
+        import logging
+        logger = logging.getLogger('litepanel')
+        logger.warning(f"Failed login attempt for user '{username}' from IP {ip_address}")
+        
         user.failed_logins += 1
         if user.failed_logins >= MAX_ATTEMPTS:
             user.locked_until = now() + timedelta(minutes=LOCKOUT_MINUTES)
