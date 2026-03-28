@@ -1,1 +1,1 @@
-litepanel ALL=(ALL) NOPASSWD: /usr/local/lsws/bin/lswsctrl, /usr/bin/pure-pw, /usr/bin/certbot, /usr/bin/openssl, /usr/bin/apt-get, /usr/sbin/ufw, /usr/bin/fail2ban-client, /usr/bin/tail, /usr/bin/restic
+litepanel ALL=(ALL) NOPASSWD: /usr/local/lsws/bin/lswsctrl, /usr/bin/pure-pw, /usr/bin/certbot, /usr/bin/openssl, /usr/bin/apt-get, /usr/sbin/ufw, /usr/bin/fail2ban-client, /usr/bin/tail, /usr/bin/restic, /bin/mkdir, /bin/chown, /bin/chmod, /usr/bin/mkdir, /usr/bin/chown, /usr/bin/chmod
