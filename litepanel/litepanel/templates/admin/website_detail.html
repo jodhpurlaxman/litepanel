@@ -102,6 +102,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Site Logs -->
+    <div style="margin-top:1.5rem;">
+        <div style="display:flex; gap:1rem; margin-bottom:1rem;">
+            <button class="btn btn-ghost btn-sm {% if log_type == 'access' %}btn-primary{% endif %}" onclick="switchLog('access', this)" id="btnAccess">
+                <i class="ph ph-list-magnifying-glass"></i> Access Log
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="switchLog('error', this)" id="btnError">
+                <i class="ph ph-warning-circle"></i> Error Log
+            </button>
+            <select id="linesSelect" onchange="reloadLog()" style="background:var(--glass); border:1px solid var(--border); border-radius:8px; color:var(--text-main); padding:0.3rem 0.6rem; font-size:0.8rem; outline:none; margin-left:auto;">
+                <option value="100">100 lines</option>
+                <option value="200" selected>200 lines</option>
+                <option value="500">500 lines</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="reloadLog()"><i class="ph ph-arrows-clockwise"></i></button>
+        </div>
+        <div id="logBox" style="background:rgba(0,0,0,0.3); border:1px solid var(--border); border-radius:12px; padding:1rem; font-family:monospace; font-size:0.78rem; line-height:1.7; white-space:pre-wrap; word-break:break-all; max-height:400px; overflow-y:auto; color:#94a3b8;">
+            Loading...
+        </div>
+    </div>
 </div>
 
 <!-- Configure PHP Modal -->
@@ -157,6 +178,36 @@ async function requestSSL(id, domain) {
         btn.innerHTML = '<i class="ph ph-shield-check"></i> Enable SSL (Let\'s Encrypt)';
     }
 }
+
+let currentLogType = 'access';
+
+function switchLog(type, btn) {
+    currentLogType = type;
+    document.querySelectorAll('#btnAccess, #btnError').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-ghost');
+    });
+    btn.classList.add('btn-primary');
+    btn.classList.remove('btn-ghost');
+    reloadLog();
+}
+
+async function reloadLog() {
+    const lines = document.getElementById('linesSelect').value;
+    const box = document.getElementById('logBox');
+    box.textContent = 'Loading...';
+    try {
+        const resp = await fetch(`/admin/logs/get/?type=site_${currentLogType}&domain={{ site.domain }}&lines=${lines}`);
+        const data = await resp.json();
+        box.textContent = data.content || '[Empty]';
+        box.scrollTop = box.scrollHeight;
+    } catch(e) {
+        box.textContent = 'Failed to load log.';
+    }
+}
+
+// Load access log on page load
+reloadLog();
 
 async function deleteSite(id, domain) {
     const btn = event.target.closest('button');

@@ -169,9 +169,56 @@ def reload_ols() -> None:
 
 def create_docroot(domain: str) -> Path:
     domain = _safe_domain(domain)
-    docroot = Path(f'/home/{domain}/public_html')
+
+    # Derive a valid Linux username (CyberPanel uses the domain as username directly
+    # but sanitized — we strip dots and truncate to 32 chars)
+    linux_user = re.sub(r'[^a-z0-9_-]', '_', domain.lower())[:32]
+
+    home_dir  = Path(f'/home/{domain}')
+    docroot   = home_dir / 'public_html'
+    logs_dir  = home_dir / 'logs'
+
+    # Detect distro for group name (CyberPanel pattern)
+    try:
+        with open('/etc/lsb-release') as f:
+            is_ubuntu = True
+    except FileNotFoundError:
+        is_ubuntu = False
+
+    group_name = 'nogroup' if is_ubuntu else 'nobody'
+
+    # Create system user (no login, home at /home/domain) — ignore error if exists
+    if is_ubuntu:
+        subprocess.run(
+            ['sudo', '/usr/sbin/adduser', '--no-create-home',
+             '--home', str(home_dir), '--disabled-login', '--gecos', '', linux_user],
+            capture_output=True, timeout=15
+        )
+    else:
+        subprocess.run(
+            ['sudo', '/usr/sbin/adduser', linux_user, '-M', '-d', str(home_dir)],
+            capture_output=True, timeout=15
+        )
+
+    # Create group and add user to it (CyberPanel pattern)
+    subprocess.run(['sudo', '/usr/sbin/groupadd', linux_user], capture_output=True, timeout=10)
+    subprocess.run(['sudo', '/usr/sbin/usermod', '-a', '-G', linux_user, linux_user],
+                   capture_output=True, timeout=10)
+
+    # /home/domain — owned user:user, chmod 711
+    subprocess.run(['sudo', 'mkdir', '-p', str(home_dir)], check=True, timeout=10)
+    subprocess.run(['sudo', 'chown', f'{linux_user}:{linux_user}', str(home_dir)], check=True, timeout=10)
+    subprocess.run(['sudo', 'chmod', '711', str(home_dir)], check=True, timeout=10)
+
+    # /home/domain/public_html — owned user:nogroup, chmod 750
     subprocess.run(['sudo', 'mkdir', '-p', str(docroot)], check=True, timeout=10)
-    subprocess.run(['sudo', 'chown', '-R', 'www-data:www-data', f'/home/{domain}'], check=True, timeout=10)
-    subprocess.run(['sudo', 'chmod', '755', f'/home/{domain}'], check=True, timeout=10)
-    subprocess.run(['sudo', 'chmod', '755', str(docroot)], check=True, timeout=10)
+    subprocess.run(['sudo', 'chown', f'{linux_user}:{group_name}', str(docroot)], check=True, timeout=10)
+    subprocess.run(['sudo', 'chmod', '750', str(docroot)], check=True, timeout=10)
+
+    # /home/domain/logs — owned root:nogroup, chmod 750
+    subprocess.run(['sudo', 'mkdir', '-p', str(logs_dir)], check=True, timeout=10)
+    subprocess.run(['sudo', 'chown', f'root:{group_name}', str(logs_dir)], check=True, timeout=10)
+    subprocess.run(['sudo', 'chmod', '750', str(logs_dir)], check=True, timeout=10)
+
+    logger.info('Created site structure for %s (linux_user: %s)', domain, linux_user)
     return docroot

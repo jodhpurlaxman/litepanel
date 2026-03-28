@@ -3,6 +3,7 @@ from django.urls import path
 from litepanel.views.auth import login_index, admin_login, user_login, logout_view
 from litepanel.admin_views import users as au, websites as aw, backup as ab, packages as ap, firewall as af, security as as_
 from litepanel.admin_views import settings as aset
+from litepanel.admin_views import logs as al
 from litepanel.user_views import ftp as uf, git as ug, ssl as us, databases as ud, websites as uw
 from litepanel.api import views as av
 
@@ -28,6 +29,8 @@ urlpatterns = [
     path('admin/security/',                 as_.security_dashboard, name='admin_security'),
     path('admin/security/manage-ban/',      as_.manage_ban,       name='admin_manage_ban'),
     path('admin/settings/',                 aset.settings_page,   name='admin_settings'),
+    path('admin/logs/',                     al.logs_page,         name='admin_logs'),
+    path('admin/logs/get/',                 al.get_log,           name='admin_get_log'),
     path('admin/users/create/',             au.create_user,     name='admin_create_user'),
     path('admin/users/<int:user_id>/delete/', au.delete_user,   name='admin_delete_user'),
     path('admin/users/<int:user_id>/reset-password/', au.reset_password, name='admin_reset_password'),
