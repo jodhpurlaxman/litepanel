@@ -14,7 +14,9 @@ urlpatterns = [
     # ── Admin views ───────────────────────────────────────────────────────
     path('admin/dashboard/',                aw.admin_dashboard,  name='admin_dashboard'),
     path('admin/users/',                    au.list_users,      name='admin_list_users'),
+    path('admin/packages/',                 ap.list_packages,    name='admin_list_packages'),
     path('admin/packages/install/',         ap.trigger_install,   name='admin_install_package'),
+    path('admin/backup/',                   ab.list_backups,      name='admin_list_backups'),
     path('admin/firewall/',                 af.list_firewall,     name='admin_firewall'),
     path('admin/firewall/add/',             af.add_firewall_rule, name='admin_firewall_add'),
     path('admin/firewall/remove/',          af.remove_firewall_rule, name='admin_firewall_remove'),

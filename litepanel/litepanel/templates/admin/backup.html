@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Backup Management — LitePanel{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="header-main">
+        <h1>Backup Management</h1>
+        <p>Configure incremental backups (S3/SFTP) and local archives.</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-primary">
+            <i class="ph-bold ph-plus"></i> Create Backup
+        </button>
+    </div>
+</div>
+
+<div class="glass-card" style="margin-top: 2rem; padding: 3rem; text-align: center;">
+    <div style="font-size: 3rem; color: var(--accent-primary); margin-bottom: 1.5rem;">
+        <i class="ph-bold ph-hard-drive"></i>
+    </div>
+    <h2>Backup System Coming Soon</h2>
+    <p style="color: var(--text-muted); max-width: 500px; margin: 1rem auto;">
+        I am currently designing the advanced Restic-based backup system with S3, SFTP, and incremental support. 
+        Stay tuned for the next update!
+    </p>
+</div>
+{% endblock %}
