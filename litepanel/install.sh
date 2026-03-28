@@ -288,6 +288,7 @@ else
     yum install -y fail2ban -q
 fi
 cp "$APP_ROOT/hardening/fail2ban-litepanel.conf" "/etc/fail2ban/jail.d/litepanel.conf"
+cp "$APP_ROOT/hardening/litepanel.filter" "/etc/fail2ban/filter.d/litepanel.conf"
 systemctl enable --now fail2ban
 
 success "Services and hardening deployed"
