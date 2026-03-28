@@ -22,8 +22,10 @@ def list_websites(request):
 def admin_dashboard(request):
     from django.shortcuts import render
     sites = Website.objects.all().order_by('-created_at')
+    users = User.objects.all().order_by('username')
     return render(request, 'admin/dashboard.html', {
         'websites': sites,
+        'users': users,
         'active_page': 'websites',
         'panel_user': request.panel_user
     })

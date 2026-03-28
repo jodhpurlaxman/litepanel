@@ -70,9 +70,25 @@
     <div id="createModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
         <div class="card animate-fade" style="width: 450px; border-color: var(--accent-primary);">
             <h2 style="margin-bottom: 1.5rem;">Create New Website</h2>
-            <div style="margin-bottom: 1.5rem;">
+            <div style="margin-bottom: 1rem;">
                 <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">Domain Name</label>
                 <input type="text" id="new_domain" placeholder="example.com" style="width: 100%; padding: 0.85rem; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: white; outline: none;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">Owner (User)</label>
+                <select id="new_owner" style="width: 100%; padding: 0.85rem; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: white; outline: none;">
+                    {% for u in users %}
+                    <option value="{{ u.id }}" style="background: var(--bg-primary); color: white;">{{ u.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: var(--text-dim); font-size: 0.9rem;">PHP Version</label>
+                <select id="new_php" style="width: 100%; padding: 0.85rem; background: var(--glass); border: 1px solid var(--border); border-radius: 10px; color: white; outline: none;">
+                    <option value="8.1" style="background: var(--bg-primary); color: white;">PHP 8.1</option>
+                    <option value="8.2" style="background: var(--bg-primary); color: white;">PHP 8.2</option>
+                    <option value="8.3" style="background: var(--bg-primary); color: white;">PHP 8.3</option>
+                </select>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 1rem;">
                 <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
@@ -100,12 +116,14 @@
 
     async function submitCreate() {
         const domain = document.getElementById('new_domain').value.trim();
+        const owner_id = document.getElementById('new_owner').value;
+        const php_version = document.getElementById('new_php').value;
         if (!domain) return alert('Enter a domain');
-        // For simplicity, we assume owner_id=1 as the default admin for now
+        
         const resp = await fetch('/admin/websites/create/', {
             method: 'POST',
             headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ domain, owner_id: 1, php_version: '8.1' })
+            body: JSON.stringify({ domain, owner_id: parseInt(owner_id), php_version })
         });
         if (resp.ok) window.location.reload();
         else {
