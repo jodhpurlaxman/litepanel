@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Package Management — LitePanel{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="header-main">
+        <h1>Package Management</h1>
+        <p>Enhance your server by installing optional components.</p>
+    </div>
+</div>
+
+<div class="packages-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    {% for id, pkg in packages.items %}
+    <div class="package-card glass-card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--accent-primary);">
+                <i class="ph-bold {{ pkg.icon }}"></i>
+            </div>
+            {% if pkg.installed %}
+            <span class="badge" style="background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <i class="ph-bold ph-check-circle" style="margin-right: 4px;"></i> Installed
+            </span>
+            {% else %}
+            <span class="badge" style="background: rgba(100, 116, 139, 0.1); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.2);"> Not Found </span>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 0.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.25rem;">{{ pkg.name }}</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.5;">{{ pkg.description }}</p>
+        </div>
+
+        <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05);">
+            {% if pkg.installed %}
+            <button class="btn btn-secondary" style="width: 100%; opacity: 0.7;" disabled>
+                Already Installed
+            </button>
+            {% else %}
+            <button class="btn btn-primary" style="width: 100%;" onclick="installPackage('{{ id }}')">
+                <i class="ph-bold ph-download-simple"></i> Install Package
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+async function installPackage(pkgId) {
+    if(!confirm(`Are you sure you want to install ${pkgId}? This may take a few minutes.`)) return;
+    
+    // Show loading state (simple)
+    const btn = event.target.closest('button');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph-bold ph-spinner spinner"></i> Installing...';
+    
+    try {
+        const response = await fetch('/admin/packages/install/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ package_id: pkgId })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            alert('Package installed successfully! Reloading page...');
+            location.reload();
+        } else {
+            alert('Installation failed: ' + (result.message || result.error));
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }
+    } catch (error) {
+        alert('An error occurred during installation.');
+        btn.innerHTML = originalContent;
+        btn.disabled = false;
+    }
+}
+</script>
+
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+</style>
+{% endblock %}

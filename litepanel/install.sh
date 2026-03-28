@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 # LitePanel Installer
-# Usage: bash <(curl -fsSL https://raw.githubusercontent.com/jodhpurlaxman/litepanel/main/litepanel/install.sh)
+# Usage: bash <(curl -fsSL https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/install.sh)
 # =============================================================================
 set -euo pipefail
 
@@ -16,7 +16,7 @@ error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; }
 die()     { error "$*"; exit 1; }
 
 # ── Config ────────────────────────────────────────────────────────────────────
-REPO_URL="${LITEPANEL_REPO:-https://github.com/jodhpurlaxman/litepanel.git}"
+REPO_URL="${LITEPANEL_REPO:-https://github.com/YOUR_USER/litepanel.git}"
 INSTALL_DIR="/usr/local/litepanel"
 # The repository has a nested structure where the app is in the 'litepanel' directory
 APP_ROOT="$INSTALL_DIR/litepanel"
@@ -78,7 +78,7 @@ if [[ "$PKG_MGR" == "apt-get" ]]; then
     apt-get update -qq
     
     PACKAGES=(
-        python3 python3-pip python3-venv python3-dev git curl wget openssl mariadb-server mariadb-client pure-ftpd pure-ftpd-mysql certbot build-essential libssl-dev libffi-dev ufw
+        python3 python3-pip python3-venv python3-dev git curl wget openssl certbot build-essential libssl-dev libffi-dev ufw
     )
 
     for PKG in "${PACKAGES[@]}"; do
@@ -94,8 +94,6 @@ else
     yum install -y -q \
         python3 python3-pip python3-devel \
         git curl wget openssl \
-        mariadb-server mariadb \
-        pure-ftpd \
         certbot \
         gcc openssl-devel libffi-devel \
         firewalld
@@ -133,34 +131,8 @@ fi
 # Ensure lswsctrl is in PATH
 export PATH="$PATH:/usr/local/lsws/bin"
 
-# ── Step 3: MariaDB setup ─────────────────────────────────────────────────────
-info "Step 3/9 — Configuring MariaDB..."
-
-systemctl enable --now mariadb 2>/dev/null || systemctl enable --now mysql 2>/dev/null || true
-
-# Secure MariaDB and create panel DB user
-if [[ ! -f /root/.my.cnf ]]; then
-    info "Securing MariaDB..."
-    DB_ROOT_PASS=$(openssl rand -base64 24)
-    
-    mysql -u root <<SQL 2>/dev/null || true
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASS}';
-DELETE FROM mysql.user WHERE User='';
-DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost','127.0.0.1','::1');
-DROP DATABASE IF EXISTS test;
-DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
-FLUSH PRIVILEGES;
-SQL
-
-    # Save root password
-    echo "[client]
-user=root
-password=${DB_ROOT_PASS}" > /root/.my.cnf
-    chmod 600 /root/.my.cnf
-    success "MariaDB secured"
-else
-    success "MariaDB already secured — skipping"
-fi
+# Skip Step 3 (MariaDB setup) during initial install — handle via Packages panel
+info "Step 3/9 — Skipping MariaDB setup (optional package)..."
 
 # ── Step 4: Create system user and directories ────────────────────────────────
 info "Step 4/9 — Creating directories and system user..."

@@ -1,7 +1,7 @@
 """URL configuration for Lite Hosting Panel."""
 from django.urls import path
 from litepanel.views.auth import login_index, admin_login, user_login, logout_view
-from litepanel.admin_views import users as au, websites as aw, backup as ab
+from litepanel.admin_views import users as au, websites as aw, backup as ab, packages as ap
 from litepanel.user_views import ftp as uf, git as ug, ssl as us, databases as ud, websites as uw
 from litepanel.api import views as av
 
@@ -14,6 +14,8 @@ urlpatterns = [
     # ── Admin views ───────────────────────────────────────────────────────
     path('admin/dashboard/',                aw.admin_dashboard,  name='admin_dashboard'),
     path('admin/users/',                    au.list_users,      name='admin_list_users'),
+    path('admin/packages/',                 ap.list_packages,    name='admin_list_packages'),
+    path('admin/packages/install/',         ap.trigger_install,   name='admin_install_package'),
     path('admin/users/create/',             au.create_user,     name='admin_create_user'),
     path('admin/users/<int:user_id>/delete/', au.delete_user,   name='admin_delete_user'),
     path('admin/users/<int:user_id>/reset-password/', au.reset_password, name='admin_reset_password'),

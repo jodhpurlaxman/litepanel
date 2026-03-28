@@ -8,7 +8,7 @@ A lightweight, security-focused web hosting control panel built with Django. Ins
 
 ```bash
 # Adding ?v=1 at the end to bypass GitHub's cache
-bash <(curl -fsSL "https://raw.githubusercontent.com/jodhpurlaxman/litepanel/main/litepanel/install.sh?v=$(date +%s)")
+curl -fsSL "https://raw.githubusercontent.com/jodhpurlaxman/litepanel/main/litepanel/install.sh?v=$(date +%s)" -o install.sh && sudo bash install.sh
 
 ```
 

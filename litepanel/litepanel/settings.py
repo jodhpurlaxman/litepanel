@@ -12,6 +12,14 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 INSTALL_DIR = Path('/usr/local/litepanel')
 
+# Fallback for local development or non-standard install
+if not INSTALL_DIR.exists():
+    INSTALL_DIR = BASE_DIR.parent
+
+# Ensure essential directories exist
+(INSTALL_DIR / 'db').mkdir(parents=True, exist_ok=True)
+(INSTALL_DIR / 'ssl').mkdir(parents=True, exist_ok=True)
+
 # ---------------------------------------------------------------------------
 # Environment — load from .env file (simple key=value, no shell expansion)
 # ---------------------------------------------------------------------------
