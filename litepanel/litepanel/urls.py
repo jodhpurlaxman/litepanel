@@ -2,13 +2,14 @@
 from django.urls import path
 from litepanel.views.auth import login_index, admin_login, user_login, logout_view
 from litepanel.admin_views import users as au, websites as aw, backup as ab, packages as ap, firewall as af, security as as_
+from litepanel.admin_views import settings as aset
 from litepanel.user_views import ftp as uf, git as ug, ssl as us, databases as ud, websites as uw
 from litepanel.api import views as av
 
 urlpatterns = [
     # ── Login / logout ────────────────────────────────────────────────────
-    path('',          login_index,  name='login_index'),   # Auto-detect port
-    path('login/',    user_login,   name='user_login'),    # port 2083 root
+    path('',          login_index,  name='login_index'),
+    path('login/',    user_login,   name='user_login'),
     path('admin/login/', admin_login, name='admin_login'),
     path('logout/',   logout_view,  name='logout'),
 
@@ -26,14 +27,16 @@ urlpatterns = [
     path('admin/firewall/remove/',          af.remove_firewall_rule, name='admin_firewall_remove'),
     path('admin/security/',                 as_.security_dashboard, name='admin_security'),
     path('admin/security/manage-ban/',      as_.manage_ban,       name='admin_manage_ban'),
+    path('admin/settings/',                 aset.settings_page,   name='admin_settings'),
     path('admin/users/create/',             au.create_user,     name='admin_create_user'),
     path('admin/users/<int:user_id>/delete/', au.delete_user,   name='admin_delete_user'),
     path('admin/users/<int:user_id>/reset-password/', au.reset_password, name='admin_reset_password'),
 
-    path('admin/websites/',                       aw.list_websites,    name='admin_list_websites'),
-    path('admin/websites/create/',                aw.create_website,   name='admin_create_website'),
-    path('admin/websites/<int:site_id>/delete/',  aw.delete_website,   name='admin_delete_website'),
-    path('admin/websites/<int:site_id>/config/',  aw.configure_website,name='admin_config_website'),
+    path('admin/websites/',                             aw.list_websites,    name='admin_list_websites'),
+    path('admin/websites/create/',                      aw.create_website,   name='admin_create_website'),
+    path('admin/websites/<int:site_id>/delete/',        aw.delete_website,   name='admin_delete_website'),
+    path('admin/websites/<int:site_id>/config/',        aw.configure_website,name='admin_config_website'),
+    path('admin/websites/<int:site_id>/detail/',        aw.website_detail,   name='admin_website_detail'),
 
     path('admin/export/websites/', ab.export_websites, name='admin_export_websites'),
     path('admin/export/users/',    ab.export_users,    name='admin_export_users'),

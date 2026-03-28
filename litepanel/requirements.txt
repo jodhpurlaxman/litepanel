@@ -6,3 +6,4 @@ APScheduler
 hypothesis
 pytest-django
 netifaces
+psutil

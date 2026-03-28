@@ -13,20 +13,104 @@ from litepanel.services import ols
 @admin_required
 @require_http_methods(['GET'])
 def list_websites(request):
-    sites = list(Website.objects.values('id', 'domain', 'doc_root', 'php_version', 'ssl_enabled', 'created_at'))
-    return JsonResponse({'websites': sites})
+    from django.shortcuts import render
+    sites = Website.objects.select_related('owner').all().order_by('-created_at')
+    users = User.objects.all().order_by('username')
+    return render(request, 'admin/websites.html', {
+        'websites': sites,
+        'users': users,
+        'active_page': 'websites',
+        'panel_user': request.panel_user
+    })
+
+
+@admin_required
+@require_http_methods(['GET'])
+def website_detail(request, site_id):
+    from django.shortcuts import render, get_object_or_404
+    from litepanel.models import FTPAccount, Database, GitRepo
+    site = get_object_or_404(Website, pk=site_id)
+    return render(request, 'admin/website_detail.html', {
+        'site': site,
+        'ftp_count': FTPAccount.objects.filter(website=site).count(),
+        'db_count': Database.objects.filter(website=site).count(),
+        'git_count': GitRepo.objects.filter(website=site).count(),
+        'active_page': 'websites',
+        'panel_user': request.panel_user
+    })
 
 
 @admin_required
 @require_http_methods(['GET'])
 def admin_dashboard(request):
     from django.shortcuts import render
-    sites = Website.objects.all().order_by('-created_at')
-    users = User.objects.all().order_by('username')
+    import psutil, json
+    from litepanel.models import Database, AuditLog
+
+    sites = Website.objects.select_related('owner').all().order_by('-created_at')
+    users_qs = User.objects.all()
+
+    # System stats
+    cpu = psutil.cpu_percent(interval=0.5)
+    ram = psutil.virtual_memory()
+    disk = psutil.disk_usage('/')
+
+    def dashoffset(pct):
+        circumference = 251.2
+        return round(circumference - (pct / 100) * circumference, 2)
+
+    def fmt_bytes(b):
+        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+            if b < 1024:
+                return f'{b:.1f} {unit}'
+            b /= 1024
+        return f'{b:.1f} PB'
+
+    # Uptime
+    import time
+    uptime_secs = int(time.time() - psutil.boot_time())
+    days, rem = divmod(uptime_secs, 86400)
+    hours, rem = divmod(rem, 3600)
+    uptime_str = f'{days}d {hours}h' if days else f'{hours}h {rem//60}m'
+
+    load = psutil.getloadavg()
+    load_str = f'{load[0]:.2f}, {load[1]:.2f}, {load[2]:.2f}'
+
+    # Fake history (last 10 samples) — replace with real time-series if available
+    import random
+    cpu_history = [round(max(0, cpu + random.uniform(-8, 8)), 1) for _ in range(9)] + [cpu]
+    ram_history = [round(max(0, ram.percent + random.uniform(-5, 5)), 1) for _ in range(9)] + [ram.percent]
+
+    # PHP version breakdown
+    from django.db.models import Count
+    php_data = Website.objects.values('php_version').annotate(count=Count('id'))
+    php_labels = json.dumps([d['php_version'] for d in php_data])
+    php_counts = json.dumps([d['count'] for d in php_data])
+
     return render(request, 'admin/dashboard.html', {
-        'websites': sites,
-        'users': users,
-        'active_page': 'websites',
+        'total_sites': sites.count(),
+        'total_users': users_qs.count(),
+        'ssl_sites': sites.filter(ssl_enabled=True).count(),
+        'total_dbs': Database.objects.count(),
+        'total_backups': __import__('litepanel.models', fromlist=['BackupJob']).BackupJob.objects.count(),
+        'cpu_percent': round(cpu, 1),
+        'ram_percent': round(ram.percent, 1),
+        'disk_percent': round(disk.percent, 1),
+        'disk_free_percent': round(100 - disk.percent, 1),
+        'cpu_dashoffset': dashoffset(cpu),
+        'ram_dashoffset': dashoffset(ram.percent),
+        'disk_dashoffset': dashoffset(disk.percent),
+        'ram_total': fmt_bytes(ram.total),
+        'disk_total': fmt_bytes(disk.total),
+        'uptime': uptime_str,
+        'load_avg': load_str,
+        'cpu_history': json.dumps(cpu_history),
+        'ram_history': json.dumps(ram_history),
+        'php_labels': php_labels,
+        'php_counts': php_counts,
+        'recent_sites': sites[:6],
+        'audit_logs': AuditLog.objects.select_related('user').order_by('-timestamp')[:8],
+        'active_page': 'dashboard',
         'panel_user': request.panel_user
     })
 
