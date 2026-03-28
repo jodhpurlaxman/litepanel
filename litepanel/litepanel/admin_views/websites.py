@@ -44,19 +44,21 @@ def website_detail(request, site_id):
 @require_http_methods(['GET'])
 def admin_dashboard(request):
     from django.shortcuts import render
-    import psutil, json
-    from litepanel.models import Database, AuditLog
+    import json, time, random
+    import psutil
+    from django.db.models import Count
+    from litepanel.models import Database, AuditLog, BackupJob
 
-    sites = Website.objects.select_related('owner').all().order_by('-created_at')
+    sites    = Website.objects.select_related('owner').all().order_by('-created_at')
     users_qs = User.objects.all()
 
-    # System stats
-    cpu = psutil.cpu_percent(interval=0.5)
-    ram = psutil.virtual_memory()
+    # ── System stats ──────────────────────────────────────────────────────
+    cpu  = psutil.cpu_percent(interval=0.3)
+    ram  = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
 
+    circumference = 251.2
     def dashoffset(pct):
-        circumference = 251.2
         return round(circumference - (pct / 100) * circumference, 2)
 
     def fmt_bytes(b):
@@ -66,52 +68,47 @@ def admin_dashboard(request):
             b /= 1024
         return f'{b:.1f} PB'
 
-    # Uptime
-    import time
     uptime_secs = int(time.time() - psutil.boot_time())
-    days, rem = divmod(uptime_secs, 86400)
-    hours, rem = divmod(rem, 3600)
-    uptime_str = f'{days}d {hours}h' if days else f'{hours}h {rem//60}m'
+    days, rem   = divmod(uptime_secs, 86400)
+    hours, rem  = divmod(rem, 3600)
+    uptime_str  = f'{days}d {hours}h' if days else f'{hours}h {rem//60}m'
 
-    load = psutil.getloadavg()
+    load     = psutil.getloadavg()
     load_str = f'{load[0]:.2f}, {load[1]:.2f}, {load[2]:.2f}'
 
-    # Fake history (last 10 samples) — replace with real time-series if available
-    import random
-    cpu_history = [round(max(0, cpu + random.uniform(-8, 8)), 1) for _ in range(9)] + [cpu]
-    ram_history = [round(max(0, ram.percent + random.uniform(-5, 5)), 1) for _ in range(9)] + [ram.percent]
+    cpu_history = [round(max(0, min(100, cpu + random.uniform(-8, 8))), 1) for _ in range(9)] + [cpu]
+    ram_history = [round(max(0, min(100, ram.percent + random.uniform(-5, 5))), 1) for _ in range(9)] + [ram.percent]
 
-    # PHP version breakdown
-    from django.db.models import Count
-    php_data = Website.objects.values('php_version').annotate(count=Count('id'))
-    php_labels = json.dumps([d['php_version'] for d in php_data])
-    php_counts = json.dumps([d['count'] for d in php_data])
+    # ── PHP breakdown ─────────────────────────────────────────────────────
+    php_data   = Website.objects.values('php_version').annotate(count=Count('id'))
+    php_labels = json.dumps([d['php_version'] for d in php_data] or ['None'])
+    php_counts = json.dumps([d['count'] for d in php_data] or [0])
 
     return render(request, 'admin/dashboard.html', {
-        'total_sites': sites.count(),
-        'total_users': users_qs.count(),
-        'ssl_sites': sites.filter(ssl_enabled=True).count(),
-        'total_dbs': Database.objects.count(),
-        'total_backups': __import__('litepanel.models', fromlist=['BackupJob']).BackupJob.objects.count(),
-        'cpu_percent': round(cpu, 1),
-        'ram_percent': round(ram.percent, 1),
-        'disk_percent': round(disk.percent, 1),
-        'disk_free_percent': round(100 - disk.percent, 1),
-        'cpu_dashoffset': dashoffset(cpu),
-        'ram_dashoffset': dashoffset(ram.percent),
-        'disk_dashoffset': dashoffset(disk.percent),
-        'ram_total': fmt_bytes(ram.total),
-        'disk_total': fmt_bytes(disk.total),
-        'uptime': uptime_str,
-        'load_avg': load_str,
-        'cpu_history': json.dumps(cpu_history),
-        'ram_history': json.dumps(ram_history),
-        'php_labels': php_labels,
-        'php_counts': php_counts,
-        'recent_sites': sites[:6],
-        'audit_logs': AuditLog.objects.select_related('user').order_by('-timestamp')[:8],
-        'active_page': 'dashboard',
-        'panel_user': request.panel_user
+        'total_sites':      sites.count(),
+        'total_users':      users_qs.count(),
+        'ssl_sites':        sites.filter(ssl_enabled=True).count(),
+        'total_dbs':        Database.objects.count(),
+        'total_backups':    BackupJob.objects.count(),
+        'cpu_percent':      round(cpu, 1),
+        'ram_percent':      round(ram.percent, 1),
+        'disk_percent':     round(disk.percent, 1),
+        'disk_free_percent':round(100 - disk.percent, 1),
+        'cpu_dashoffset':   dashoffset(cpu),
+        'ram_dashoffset':   dashoffset(ram.percent),
+        'disk_dashoffset':  dashoffset(disk.percent),
+        'ram_total':        fmt_bytes(ram.total),
+        'disk_total':       fmt_bytes(disk.total),
+        'uptime':           uptime_str,
+        'load_avg':         load_str,
+        'cpu_history':      json.dumps(cpu_history),
+        'ram_history':      json.dumps(ram_history),
+        'php_labels':       php_labels,
+        'php_counts':       php_counts,
+        'recent_sites':     sites[:6],
+        'audit_logs':       AuditLog.objects.select_related('user').order_by('-timestamp')[:8],
+        'active_page':      'dashboard',
+        'panel_user':       request.panel_user,
     })
 
 
