@@ -37,6 +37,7 @@ urlpatterns = [
     path('admin/websites/<int:site_id>/delete/',        aw.delete_website,   name='admin_delete_website'),
     path('admin/websites/<int:site_id>/config/',        aw.configure_website,name='admin_config_website'),
     path('admin/websites/<int:site_id>/detail/',        aw.website_detail,   name='admin_website_detail'),
+    path('admin/websites/<int:site_id>/ssl/',           aw.request_ssl_admin,name='admin_request_ssl'),
 
     path('admin/export/websites/', ab.export_websites, name='admin_export_websites'),
     path('admin/export/users/',    ab.export_users,    name='admin_export_users'),

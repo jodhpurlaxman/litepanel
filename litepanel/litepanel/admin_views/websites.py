@@ -1,5 +1,6 @@
 """Website management — admin views."""
 import json
+import logging
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
@@ -8,6 +9,8 @@ from litepanel.models import Website, User
 from litepanel.admin_views.decorators import admin_required
 from litepanel.audit import log_action
 from litepanel.services import ols
+
+logger = logging.getLogger(__name__)
 
 
 @admin_required
@@ -164,21 +167,25 @@ def delete_website(request, site_id):
     domain = site.domain
     delete_files = data.get('delete_files', False)
 
-    # Remove OLS config
-    ols.delete_vhost_config(domain)
+    # Remove OLS config — non-fatal if OLS not installed
+    try:
+        ols.delete_vhost_config(domain)
+        ols.reload_ols()
+    except Exception as e:
+        logger.warning('OLS cleanup failed for %s: %s', domain, e)
 
-    # Optionally remove files
+    # Optionally remove files — non-fatal
     if delete_files:
         import shutil
         import pathlib
         home = pathlib.Path(f'/home/{domain}')
         if home.exists():
-            shutil.rmtree(str(home))
+            try:
+                shutil.rmtree(str(home))
+            except Exception as e:
+                logger.warning('Failed to delete files for %s: %s', domain, e)
 
-    # Cascade handled by Django FK (FTPAccounts, SSLCertificate, etc.)
     site.delete()
-    ols.reload_ols()
-
     log_action(request.panel_user, 'website_delete', domain, request.META.get('REMOTE_ADDR', '0.0.0.0'))
     return JsonResponse({'deleted': domain})
 
@@ -205,3 +212,25 @@ def configure_website(request, site_id):
 
     log_action(request.panel_user, 'website_config', site.domain, request.META.get('REMOTE_ADDR', '0.0.0.0'))
     return JsonResponse({'domain': site.domain, 'php_version': php_version})
+
+
+@admin_required
+@csrf_protect
+@require_http_methods(['POST'])
+def request_ssl_admin(request, site_id):
+    """Admin-side SSL certificate request."""
+    try:
+        site = Website.objects.get(pk=site_id)
+    except Website.DoesNotExist:
+        return JsonResponse({'error': 'Website not found', 'code': 'NOT_FOUND', 'details': {}}, status=404)
+
+    from litepanel.services.ssl import request_certificate
+    try:
+        cert = request_certificate(site)
+    except ValueError as e:
+        return JsonResponse({'error': str(e), 'code': 'DNS_CHECK_FAILED', 'details': {}}, status=400)
+    except RuntimeError as e:
+        return JsonResponse({'error': str(e), 'code': 'CERTBOT_FAILED', 'details': {}}, status=500)
+
+    log_action(request.panel_user, 'ssl_request', site.domain, request.META.get('REMOTE_ADDR', '0.0.0.0'))
+    return JsonResponse({'cert_path': cert.cert_path, 'expires_at': cert.expires_at.isoformat()}, status=201)

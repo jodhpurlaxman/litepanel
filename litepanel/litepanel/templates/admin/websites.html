@@ -210,7 +210,7 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin 1s linear infinite;"></i>';
 
-        const resp = await fetch(`/user/sites/${id}/ssl/request/`, {
+        const resp = await fetch(`/admin/websites/${id}/ssl/`, {
             method: 'POST',
             headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
         });
