@@ -49,7 +49,8 @@ def create_website(request):
         return JsonResponse({'error': 'Domain already exists', 'code': 'DUPLICATE_DOMAIN', 'details': {}}, status=400)
 
     try:
-        site = Website(owner=owner, domain=domain, php_version=php_version)
+        doc_root = f'/home/{domain}/public_html'
+        site = Website(owner=owner, domain=domain, php_version=php_version, doc_root=doc_root)
         site.full_clean()
         site.save()
         ols.create_docroot(domain)
