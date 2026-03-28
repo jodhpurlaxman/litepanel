@@ -1,2 +1,4 @@
 .kiro
 .vscode.env
+.env
+.vscode/settings.json
