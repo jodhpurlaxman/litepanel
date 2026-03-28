@@ -46,8 +46,12 @@ def admin_dashboard(request):
     from django.shortcuts import render
     import json, time, random
     import psutil
+    from django.db import connection
     from django.db.models import Count
     from litepanel.models import Database, AuditLog, BackupJob
+
+    def _table_exists(name):
+        return name in connection.introspection.table_names()
 
     sites    = Website.objects.select_related('owner').all().order_by('-created_at')
     users_qs = User.objects.all()
@@ -89,7 +93,7 @@ def admin_dashboard(request):
         'total_users':      users_qs.count(),
         'ssl_sites':        sites.filter(ssl_enabled=True).count(),
         'total_dbs':        Database.objects.count(),
-        'total_backups':    BackupJob.objects.count(),
+        'total_backups':    BackupJob.objects.count() if _table_exists('litepanel_backupjob') else 0,
         'cpu_percent':      round(cpu, 1),
         'ram_percent':      round(ram.percent, 1),
         'disk_percent':     round(disk.percent, 1),
