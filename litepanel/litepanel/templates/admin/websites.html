@@ -257,6 +257,8 @@
             btn.innerHTML = '<i class="ph ph-shield-slash" style="color:#f59e0b;"></i> Enable SSL';
             const msg = data.code === 'DNS_CHECK_FAILED'
                 ? `DNS not pointing to this server yet.\n\nPoint your domain's A record to this server's IP, wait for propagation, then try again.`
+                : data.error?.includes('dry-run')
+                ? `SSL validation failed. Ensure:\n• DNS A record points to this server\n• Port 80 is open\n• Cloudflare proxy is disabled (grey cloud) during cert issuance`
                 : (data.error || 'SSL request failed.');
             alert(msg);
         }

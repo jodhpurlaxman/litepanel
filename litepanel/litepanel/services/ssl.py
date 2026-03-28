@@ -36,26 +36,36 @@ def domain_resolves_to_server(domain: str) -> bool:
 
 def request_certificate(website, webroot: str = None) -> 'SSLCertificate':
     from litepanel.models import SSLCertificate
-    from litepanel.services.ols import reload_ols
+    from litepanel.services.ols import reload_ols, write_vhost_config
 
     domain = website.domain
-    if not domain_resolves_to_server(domain):
-        raise ValueError(f'Domain {domain} does not resolve to this server.')
-
     webroot = webroot or website.doc_root
+
+    base_cmd = [
+        'sudo', 'certbot', 'certonly', '--webroot',
+        '-w', webroot, '-d', domain,
+        '--non-interactive', '--agree-tos',
+        '--email', f'admin@{domain}',
+    ]
+
+    # Dry run first to validate without hitting rate limits
+    dry = subprocess.run(
+        base_cmd + ['--dry-run'],
+        shell=False, timeout=CERTBOT_TIMEOUT, capture_output=True, text=True,
+    )
+    if dry.returncode != 0:
+        logger.error('certbot dry-run failed for %s: %s', domain, dry.stderr)
+        raise RuntimeError(f'SSL validation failed: {dry.stderr[:1024]}')
+
+    # Dry run passed — issue the real cert
     result = subprocess.run(
-        ['sudo', 'certbot', 'certonly', '--webroot',
-         '-w', webroot,
-         '-d', domain,
-         '--non-interactive', '--agree-tos',
-         '--email', 'admin@' + domain],
+        base_cmd,
         shell=False, timeout=CERTBOT_TIMEOUT, capture_output=True, text=True,
     )
     if result.returncode != 0:
         logger.error('certbot failed for %s: %s', domain, result.stderr)
         raise RuntimeError(f'certbot failed: {result.stderr[:1024]}')
 
-    # Parse expiry from certbot output or read cert directly
     expires_at = _read_cert_expiry(domain)
 
     ssl_cert, _ = SSLCertificate.objects.update_or_create(
@@ -69,8 +79,6 @@ def request_certificate(website, webroot: str = None) -> 'SSLCertificate':
     website.ssl_enabled = True
     website.save(update_fields=['ssl_enabled'])
 
-    # Rewrite vhost with SSL block
-    from litepanel.services.ols import write_vhost_config
     write_vhost_config(domain, website.php_version, ssl=True)
     reload_ols()
 

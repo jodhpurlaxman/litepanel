@@ -231,6 +231,5 @@ def request_ssl_admin(request, site_id):
         return JsonResponse({'error': str(e), 'code': 'DNS_CHECK_FAILED', 'details': {}}, status=400)
     except RuntimeError as e:
         return JsonResponse({'error': str(e), 'code': 'CERTBOT_FAILED', 'details': {}}, status=500)
-
     log_action(request.panel_user, 'ssl_request', site.domain, request.META.get('REMOTE_ADDR', '0.0.0.0'))
     return JsonResponse({'cert_path': cert.cert_path, 'expires_at': cert.expires_at.isoformat()}, status=201)
