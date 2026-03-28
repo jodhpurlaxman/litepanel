@@ -56,6 +56,7 @@ def create_config(request):
         name=name,
         repo_type=repo_type,
         destination=destination,
+        retention_days=int(request.POST.get('retention_days', 7)),
         encrypted_credentials=encrypt_data(json.dumps(creds))
     )
     

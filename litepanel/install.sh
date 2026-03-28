@@ -78,7 +78,7 @@ if [[ "$PKG_MGR" == "apt-get" ]]; then
     apt-get update -qq
     
     PACKAGES=(
-        python3 python3-pip python3-venv python3-dev git curl wget openssl certbot build-essential libssl-dev libffi-dev ufw
+        python3 python3-pip python3-venv python3-dev git curl wget openssl certbot build-essential libssl-dev libffi-dev ufw restic
     )
 
     for PKG in "${PACKAGES[@]}"; do
@@ -96,7 +96,8 @@ else
         git curl wget openssl \
         certbot \
         gcc openssl-devel libffi-devel \
-        firewalld
+        firewalld \
+        restic
 fi
 success "System packages installed"
 
