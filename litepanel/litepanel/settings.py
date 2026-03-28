@@ -167,6 +167,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ---------------------------------------------------------------------------
 # Logging — /var/log/litepanel/
 # ---------------------------------------------------------------------------
+import os as _os
+_LOG_DIR = '/var/log/litepanel'
+_os.makedirs(_LOG_DIR, exist_ok=True)
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
