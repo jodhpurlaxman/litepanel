@@ -68,7 +68,7 @@ ROOT_URLCONF = 'litepanel.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'litepanel' / 'templates'],
         'APP_DIRS': False,
         'OPTIONS': {
             'context_processors': [
