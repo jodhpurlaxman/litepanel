@@ -24,9 +24,11 @@ def _prepare_env(config):
     if config.repo_type == BackupConfig.TYPE_S3:
         env["AWS_ACCESS_KEY_ID"] = creds.get("aws_access_key")
         env["AWS_SECRET_ACCESS_KEY"] = creds.get("aws_secret_key")
-        env["RESTIC_REPOSITORY"] = f"s3:{config.destination}"
+        dest = config.destination if config.destination.startswith("s3:") else f"s3:{config.destination}"
+        env["RESTIC_REPOSITORY"] = dest
     elif config.repo_type == BackupConfig.TYPE_SFTP:
-        env["RESTIC_REPOSITORY"] = f"sftp:{config.destination}"
+        dest = config.destination if config.destination.startswith("sftp:") else f"sftp:{config.destination}"
+        env["RESTIC_REPOSITORY"] = dest
         # For SFTP, we might need a password or SSH key handle
         env["SSH_AUTH_SOCK"] = "" # SFTP password handled via restic expect or env? 
         # Restic SFTP usually expects SSH keys. If password, it's tricky.
